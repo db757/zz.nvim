@@ -12,6 +12,7 @@ CONTENTS                                                       *zz-contents*
     3. Configuration .......................... |zz-configuration|
     4. Usage ................................. |zz-usage|
     5. API ................................... |zz-api|
+    6. Health Checks ......................... |zz-health|
 
 ==============================================================================
 1. INTRODUCTION                                           *zz-introduction*
@@ -86,5 +87,15 @@ Configuration Options:~
     integrations      Table of integrations to enable/disable
         whichkey      Enable which-key integration
         snacks       Enable Snacks.toggle integration
+
+==============================================================================
+6. HEALTH CHECKS                                             *zz-health*
+
+Run `:checkhealth zz` to verify your setup. The health check will:
+
+- Check optional dependencies (which-key.nvim and snacks.nvim)
+- Verify mode mappings configuration
+- Check plugin initialization state
+- Verify autocmd registration
 
  vim:tw=78:ts=8:ft=help:norl:
