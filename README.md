@@ -75,6 +75,12 @@ zz.set_mode(mode?: string)
 
 -- Check if specific mode is enabled
 zz.is_enabled(mode: string): boolean
+
+-- You can also control the mode by setting vim.g.zz_mode directly:
+vim.g.zz_mode = "zz"  -- Center mode
+vim.g.zz_mode = "zt"  -- Top mode
+vim.g.zz_mode = "zb"  -- Bottom mode
+vim.g.zz_mode = ""    -- Disable mode
 ```
 
 ### Types

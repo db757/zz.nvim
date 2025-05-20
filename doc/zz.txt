@@ -61,6 +61,13 @@ Default key mappings:~
 When a mode is active, moving vertically in the buffer will automatically
 apply the corresponding centering command.
 
+You can also control the mode by setting |vim.g.zz_mode| directly: >lua
+    vim.g.zz_mode = "zz"  -- Center mode
+    vim.g.zz_mode = "zt"  -- Top mode
+    vim.g.zz_mode = "zb"  -- Bottom mode
+    vim.g.zz_mode = ""    -- Disable mode
+<
+
 ==============================================================================
 5. API                                                         *zz-api*
 
