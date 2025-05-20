@@ -1,0 +1,90 @@
+*zz.txt*  Automatic buffer centering modes with configurable keybindings
+
+Author:  db757 (Dean B)
+License: MIT
+Version: 1.0.0
+
+==============================================================================
+CONTENTS                                                       *zz-contents*
+
+    1. Introduction ........................... |zz-introduction|
+    2. Requirements ........................... |zz-requirements|
+    3. Configuration .......................... |zz-configuration|
+    4. Usage ................................. |zz-usage|
+    5. API ................................... |zz-api|
+
+==============================================================================
+1. INTRODUCTION                                           *zz-introduction*
+
+zz.nvim provides automatic buffer centering modes (zz, zt, zb) that
+automatically apply when moving vertically through a buffer.
+
+==============================================================================
+2. REQUIREMENTS                                           *zz-requirements*
+
+Required:~
+    - Neovim >= 0.8.0
+
+Optional:~
+    - which-key.nvim (https://github.com/folke/which-key.nvim)
+    - snacks.nvim (https://github.com/folke/snacks.nvim)
+
+==============================================================================
+3. CONFIGURATION                                         *zz-configuration*
+
+The plugin auto-initializes with default settings. You can optionally customize
+it using the setup function: >lua
+
+    require('zz').setup({
+      -- Key mappings for different modes
+      mappings = {
+        zz = "<leader>zz", -- Center current line
+        zt = "<leader>zt", -- Top align current line
+        zb = "<leader>zb", -- Bottom align current line
+      },
+      -- Optional integrations (all enabled by default)
+      integrations = {
+        whichkey = true, -- Enable which-key integration
+        snacks = true,   -- Enable Snacks.toggle integration
+      },
+    })
+<
+==============================================================================
+4. USAGE                                                       *zz-usage*
+
+Default key mappings:~
+    <leader>zz      Toggle center mode (zz)
+    <leader>zt      Toggle top mode (zt)
+    <leader>zb      Toggle bottom mode (zb)
+
+When a mode is active, moving vertically in the buffer will automatically
+apply the corresponding centering command.
+
+==============================================================================
+5. API                                                         *zz-api*
+
+Functions:~
+
+                                                              *zz.setup()*
+setup({opts})
+    Configure the plugin with the given options
+
+                                                          *zz.disable()*
+disable()
+    Disable current mode
+
+                                                       *zz.set_mode()*
+set_mode({mode})
+    Set current mode
+
+                                                       *zz.is_enabled()*
+is_enabled({mode})
+    Check if specific mode is enabled
+
+Configuration Options:~
+    mappings          Key mappings table
+    integrations      Table of integrations to enable/disable
+        whichkey      Enable which-key integration
+        snacks       Enable Snacks.toggle integration
+
+ vim:tw=78:ts=8:ft=help:norl:
