@@ -26,7 +26,7 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
 {
-  "username/zz.nvim",
+  "db757/zz.nvim",
   dependencies = {
     -- Optional dependencies
     "folke/which-key.nvim",
