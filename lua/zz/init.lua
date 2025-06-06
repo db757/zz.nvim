@@ -1,6 +1,8 @@
 ---@class ZModeConfig
+---@field notify? boolean Whether to notify on mode changes
 ---@field mappings table<string, string> Key mappings for different z-modes
----@field integrations { whichkey?: boolean, snacks?: boolean } Optional integrations
+---@field integrations { whichkey?: { group?: { icon?: string, prefix?: string, name?: string } }, snacks?: boolean } Optional integrations
+
 ---@class ZMode
 ---@field setup fun(opts?: ZModeConfig) Configure the plugin
 ---@field disable fun() Disable current z-mode
@@ -17,13 +19,20 @@ local M = {}
 
 ---@type ZModeConfig
 M.config = {
+  notify = true,
   mappings = {
     zz = "<leader>zz",
     zt = "<leader>zt",
     zb = "<leader>zb",
   },
   integrations = {
-    whichkey = true,
+    whichkey = {
+      group = {
+        icon = "󰬡",
+        prefix = "<leader>z",
+        name = " ZZ modes",
+      },
+    },
     snacks = true,
   },
 }
@@ -39,14 +48,11 @@ end
 local function setup_cursor_moved()
   vim.api.nvim_create_autocmd("CursorMoved", {
     callback = function()
-      -- Get the previous and current positions
       local current_line = vim.fn.line(".")
       local prev_line = vim.b.last_line or current_line
 
-      -- Update the last line
       vim.b.last_line = current_line
 
-      -- If vertical movement occurred and we have a mode set
       if current_line ~= prev_line and vim.g.zz_mode and vim.g.zz_mode ~= "" then
         vim.cmd("normal! " .. vim.g.zz_mode)
       end
@@ -55,38 +61,37 @@ local function setup_cursor_moved()
   })
 end
 
-local function update_whichkey_state()
-  if not M.config.integrations.whichkey then
-    return false
-  end
-
+local function whichkey_available()
   local ok, _ = pcall(require, "which-key")
-  if not ok then
-    M.config.integrations.whichkey = false
-  end
-
-  return M.config.integrations.whichkey
-end
-
-local function update_snacks_state()
-  M.config.integrations.snacks = M.config.integrations.snacks and Snacks and Snacks.toggle and true
+  return ok
 end
 
 local function register_whichkey()
-  if not M.config.integrations.whichkey then
+  local wk = M.config.integrations.whichkey
+  if wk == nil then
+    return
+  end
+
+  if wk.group == nil then
+    return
+  end
+
+  if not whichkey_available() then
     return
   end
 
   -- Create the group registrations
-  require("which-key").add({ {
-    "<leader>z",
-    group = " Center modes",
-    icon = "󰬡",
-  } })
+  require("which-key").add({
+    {
+      wk.group.prefix,
+      group = wk.group.name,
+      icon = wk.group.icon,
+    },
+  })
 end
 
 local function setup_mode_toggle(mode)
-  local toggle = {
+  local snacks_toggle = {
     id = mode .. "_mode",
     name = mode .. " mode",
     get = function()
@@ -95,31 +100,30 @@ local function setup_mode_toggle(mode)
     set = function(state)
       M.set_mode(state and mode or "")
     end,
+    notify = M.config.notify,
   }
 
   local mapping = M.config.mappings[mode] or ("<leader>" .. mode)
 
   -- Set up Snacks integration if available and enabled
-  if M.config.integrations.snacks then
-    Snacks.toggle.new(toggle):map(mapping)
+  local snacks = M.config.integrations.snacks
+  if snacks ~= nil and snacks then
+    Snacks.toggle.new(snacks_toggle):map(mapping)
   else
     -- fallback to "manual" toggle function
     local toggle_func = function()
       M.set_mode(M.is_enabled(mode) and "" or mode)
+      local state = "Off"
+      if vim.g.zz_mode == mode then
+        state = "On"
+      end
+      if M.config.notify then
+        vim.notify(mode .. " mode turned " .. state, vim.log.levels.INFO)
+      end
     end
 
     local desc = "Toggle " .. mode .. " mode"
-
-    if M.config.integrations.whichkey then
-      require("which-key").add({ { mapping, toggle_func, {
-        desc = desc,
-      } } })
-    else
-      -- fallback to basic keymapping
-      vim.keymap.set("n", mapping, toggle_func, {
-        desc = desc,
-      })
-    end
+    vim.keymap.set("n", mapping, toggle_func, { desc = desc })
   end
 end
 
@@ -130,8 +134,6 @@ function M.setup(opts)
 
   vim.schedule(function()
     sanitize()
-    update_whichkey_state()
-    update_snacks_state()
     setup_cursor_moved()
     register_whichkey()
 

@@ -51,9 +51,16 @@ require("zz").setup({
     zt = "<leader>zt", -- Top align current line
     zb = "<leader>zb", -- Bottom align current line
   },
-  -- Optional integrations (all enabled by default)
+  -- Optional integrations
   integrations = {
-    whichkey = true, -- Enable which-key integration
+    whichkey = {
+      enabled = true,
+      group = {
+        icon = "󰬡",  -- Icon for the group
+        prefix = "<leader>z",
+        name = " ZZ modes"
+      }
+    },
     snacks = true,   -- Enable Snacks.toggle integration
   },
 })
@@ -64,6 +71,8 @@ require("zz").setup({
 ### Functions
 
 ```lua
+zz = require("zz")
+
 -- Configure the plugin
 zz.setup(opts?: ZModeConfig)
 
@@ -87,8 +96,18 @@ vim.g.zz_mode = ""    -- Disable mode
 
 ```lua
 ---@class ZModeConfig
+---@field notify? boolean Whether to notify when the mode changes
 ---@field mappings table<string, string> Key mappings for different z-modes
----@field integrations { whichkey?: boolean, snacks?: boolean } Optional integrations
+---@field integrations {
+---    whichkey?: {
+---      group?: {
+---        icon?: string,
+---        prefix?: string,
+---        name?: string
+---      }
+---    },
+---    snacks?: boolean
+---  } Optional integrations
 
 ---@class ZMode
 ---@field setup fun(opts?: ZModeConfig) Configure the plugin
