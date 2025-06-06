@@ -54,7 +54,6 @@ require("zz").setup({
   -- Optional integrations
   integrations = {
     whichkey = {
-      enabled = true,
       group = {
         icon = "󰬡",  -- Icon for the group
         prefix = "<leader>z",
