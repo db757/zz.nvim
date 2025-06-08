@@ -1,6 +1,6 @@
 ---@class ZModeConfig
 ---@field notify? boolean Whether to notify on mode changes
----@field mappings table<string, string> Key mappings for different z-modes
+---@field mappings table<string, string> Key mappings for different z-modes. Buffer-local mappings: bzz, bzt, bzb, bzc
 ---@field integrations { whichkey?: { group?: { icon?: string, prefix?: string, name?: string } }, snacks?: boolean } Optional integrations
 ---@field ignore_filetypes table<string, boolean> Filetypes to ignore for auto-centering
 
@@ -25,6 +25,11 @@ M.config = {
     zz = "<leader>zz",
     zt = "<leader>zt",
     zb = "<leader>zb",
+    -- Buffer-local mappings
+    bzz = "<leader>zZ",
+    bzt = "<leader>zT",
+    bzb = "<leader>zB",
+    bzc = "<leader>zC",
   },
   integrations = {
     whichkey = {
@@ -51,9 +56,15 @@ M.config = {
 
 -- Private functions
 local function sanitize()
+  -- Check global mode
   if valid_modes[vim.g.zz_mode] == nil and vim.g.zz_mode ~= "" then
-    vim.notify("Invalid mode: '" .. vim.g.zz_mode .. "'", vim.log.levels.WARN)
+    vim.notify("Invalid global mode: '" .. vim.g.zz_mode .. "'", vim.log.levels.WARN)
     M.disable()
+  end
+  -- Check buffer mode if set
+  if vim.b.zz_mode ~= nil and valid_modes[vim.b.zz_mode] == nil and vim.b.zz_mode ~= "" then
+    vim.notify("Invalid buffer mode: '" .. vim.b.zz_mode .. "'", vim.log.levels.WARN)
+    vim.b.zz_mode = nil
   end
 end
 
@@ -66,14 +77,22 @@ local function setup_cursor_moved()
       end
       local current_line = vim.fn.line(".")
       local prev_line = vim.b.last_line or current_line
-
       vim.b.last_line = current_line
 
-      if current_line ~= prev_line and vim.g.zz_mode and vim.g.zz_mode ~= "" then
-        vim.cmd("normal! " .. vim.g.zz_mode)
+      if current_line ~= prev_line then
+        -- Check if buffer has explicit setting
+        if vim.b.zz_mode ~= nil then
+          -- Use buffer setting (even if it's "")
+          if vim.b.zz_mode ~= "" then
+            vim.cmd("normal! " .. vim.b.zz_mode)
+          end
+        -- No buffer setting, fall back to global
+        elseif vim.g.zz_mode and vim.g.zz_mode ~= "" then
+          vim.cmd("normal! " .. vim.g.zz_mode)
+        end
       end
     end,
-    desc = "Auto-center based on vim.g.zz_mode",
+    desc = "Auto-center based on buffer/global z-mode",
   })
 end
 
@@ -104,6 +123,76 @@ local function register_whichkey()
       icon = wk.group.icon,
     },
   })
+end
+
+local function clear_buffer_mode()
+  vim.b.zz_mode = nil
+  if M.config.notify then
+    vim.notify("Buffer-local z-mode cleared, using global setting", vim.log.levels.INFO)
+  end
+end
+
+local function setup_buffer_mode_toggle(mode)
+  local snacks_toggle = {
+    id = "buffer_" .. mode .. "_mode",
+    name = "Buffer " .. mode .. " mode",
+    get = function()
+      return vim.b.zz_mode == mode
+    end,
+    set = function(state)
+      vim.b.zz_mode = state and mode or ""
+    end,
+    notify = M.config.notify,
+  }
+
+  local mapping_key = "b" .. mode
+  local mapping = M.config.mappings[mapping_key] or ("<leader>z" .. mode:upper())
+
+  -- Set up Snacks integration if available and enabled
+  local snacks = M.config.integrations.snacks
+  if snacks ~= nil and snacks then
+    Snacks.toggle.new(snacks_toggle):map(mapping)
+  else
+    -- fallback to "manual" toggle function
+    local toggle_func = function()
+      local is_enabled = vim.b.zz_mode == mode
+      vim.b.zz_mode = is_enabled and "" or mode
+      local state = is_enabled and "Off" or "On"
+      if M.config.notify then
+        vim.notify("Buffer " .. mode .. " mode turned " .. state, vim.log.levels.INFO)
+      end
+    end
+
+    local desc = "Toggle buffer-local " .. mode .. " mode"
+    vim.keymap.set("n", mapping, toggle_func, { desc = desc })
+  end
+end
+
+local function setup_buffer_clear()
+  local mapping = M.config.mappings.bzc or "<leader>zC"
+
+  -- Set up Snacks integration if available and enabled
+  local snacks = M.config.integrations.snacks
+  if snacks ~= nil and snacks then
+    Snacks.toggle.new({
+      id = "buffer_mode_clear",
+      name = "Clear buffer z-mode",
+      get = function()
+        return vim.b.zz_mode ~= nil
+      end,
+      set = function(state)
+        if not state then
+          clear_buffer_mode()
+        end
+      end,
+      notify = M.config.notify,
+    }):map(mapping)
+  else
+    -- fallback to "manual" clear function
+    vim.keymap.set("n", mapping, clear_buffer_mode, {
+      desc = "Clear buffer-local z-mode (use global)"
+    })
+  end
 end
 
 local function setup_mode_toggle(mode)
@@ -153,10 +242,13 @@ function M.setup(opts)
     setup_cursor_moved()
     register_whichkey()
 
-    -- Set up toggles for each mode
+    -- Set up global toggles for each mode
     for mode, _ in pairs(valid_modes) do
       setup_mode_toggle(mode)
+      setup_buffer_mode_toggle(mode)
     end
+    -- Set up buffer clear
+    setup_buffer_clear()
   end)
 end
 
