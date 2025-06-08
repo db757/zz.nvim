@@ -62,6 +62,17 @@ require("zz").setup({
       }
     },
     snacks = true,   -- Enable Snacks.toggle integration
+    ignore_filetypes = {
+      ["help"] = true,
+      ["qf"] = true,
+      ["TelescopePrompt"] = true,
+      ["NvimTree"] = true,
+      ["Trouble"] = true,
+      ["lazy"] = true,
+      ["mason"] = true,
+      ["oil"] = true,
+      ["copilot-chat"] = true,
+    },
   },
 })
 ```
@@ -108,6 +119,7 @@ vim.g.zz_mode = ""    -- Disable mode
 ---    },
 ---    snacks?: boolean
 ---  } Optional integrations
+---@field ignore_filetypes? table<string, bool> List of filetypes to ignore
 
 ---@class ZMode
 ---@field setup fun(opts?: ZModeConfig) Configure the plugin

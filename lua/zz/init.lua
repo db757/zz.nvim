@@ -2,6 +2,7 @@
 ---@field notify? boolean Whether to notify on mode changes
 ---@field mappings table<string, string> Key mappings for different z-modes
 ---@field integrations { whichkey?: { group?: { icon?: string, prefix?: string, name?: string } }, snacks?: boolean } Optional integrations
+---@field ignore_filetypes table<string, boolean> Filetypes to ignore for auto-centering
 
 ---@class ZMode
 ---@field setup fun(opts?: ZModeConfig) Configure the plugin
@@ -35,6 +36,17 @@ M.config = {
     },
     snacks = true,
   },
+  ignore_filetypes = {
+    ["help"] = true,
+    ["qf"] = true,
+    ["TelescopePrompt"] = true,
+    ["NvimTree"] = true,
+    ["Trouble"] = true,
+    ["lazy"] = true,
+    ["mason"] = true,
+    ["oil"] = true,
+    ["copilot-chat"] = true,
+  },
 }
 
 -- Private functions
@@ -48,6 +60,10 @@ end
 local function setup_cursor_moved()
   vim.api.nvim_create_autocmd("CursorMoved", {
     callback = function()
+      local ft = vim.bo.filetype
+      if M.config.ignore_filetypes[ft] then
+        return
+      end
       local current_line = vim.fn.line(".")
       local prev_line = vim.b.last_line or current_line
 
