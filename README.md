@@ -74,8 +74,8 @@ require("zz").setup({
   },
   -- Filetypes to ignore for auto-centering (these are the defaults)
   ignore_filetypes = {
-    ["help"] = true,
-    ["qf"] = true,
+    ["help"] = false,
+    ["qf"] = false,
     ["TelescopePrompt"] = true,
     ["NvimTree"] = true,
     ["Trouble"] = true,

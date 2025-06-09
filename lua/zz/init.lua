@@ -44,8 +44,8 @@ M.config = {
     snacks = true,
   },
   ignore_filetypes = {
-    ["help"] = true,
-    ["qf"] = true,
+    ["help"] = false,
+    ["qf"] = false,
     ["TelescopePrompt"] = true,
     ["NvimTree"] = true,
     ["Trouble"] = true,
