@@ -6,8 +6,10 @@ A Neovim plugin that provides automatic buffer centering modes (zz, zt, zb) with
 
 - Automatic buffer centering when moving vertically
 - Multiple centering modes (zz, zt, zb)
-- Configurable keybindings
+- Buffer-local settings for per-buffer centering behavior
+- Configurable keybindings with global and buffer-local mappings
 - Optional integration with which-key and Snacks.toggle
+- Filetype-specific ignore settings
 
 ## Dependencies
 
@@ -47,9 +49,16 @@ The plugin auto-initializes with default settings. You can optionally customize 
 require("zz").setup({
   -- Key mappings for different modes
   mappings = {
+    -- Global mode mappings
     zz = "<leader>zz", -- Center current line
     zt = "<leader>zt", -- Top align current line
     zb = "<leader>zb", -- Bottom align current line
+
+    -- Buffer-local mappings (override global setting for current buffer)
+    bzz = "<leader>zZ", -- Toggle buffer-local center mode
+    bzt = "<leader>zT", -- Toggle buffer-local top mode
+    bzb = "<leader>zB", -- Toggle buffer-local bottom mode
+    bzc = "<leader>zC", -- Clear buffer-local mode (use global)
   },
   -- Optional integrations
   integrations = {
@@ -62,17 +71,19 @@ require("zz").setup({
       }
     },
     snacks = true,   -- Enable Snacks.toggle integration
-    ignore_filetypes = {
-      ["help"] = true,
-      ["qf"] = true,
-      ["TelescopePrompt"] = true,
-      ["NvimTree"] = true,
-      ["Trouble"] = true,
-      ["lazy"] = true,
-      ["mason"] = true,
-      ["oil"] = true,
-      ["copilot-chat"] = true,
-    },
+  },
+  -- Filetypes to ignore for auto-centering (these are the defaults)
+  ignore_filetypes = {
+    ["help"] = true,
+    ["qf"] = true,
+    ["TelescopePrompt"] = true,
+    ["NvimTree"] = true,
+    ["Trouble"] = true,
+    ["lazy"] = true,
+    ["mason"] = true,
+    ["oil"] = true,
+    ["copilot-chat"] = true,
+  },
   },
 })
 ```
@@ -96,11 +107,18 @@ zz.set_mode(mode?: string)
 -- Check if specific mode is enabled
 zz.is_enabled(mode: string): boolean
 
--- You can also control the mode by setting vim.g.zz_mode directly:
+-- Global mode control:
 vim.g.zz_mode = "zz"  -- Center mode
 vim.g.zz_mode = "zt"  -- Top mode
 vim.g.zz_mode = "zb"  -- Bottom mode
 vim.g.zz_mode = ""    -- Disable mode
+
+-- Buffer-local mode control:
+vim.b.zz_mode = "zz"  -- Buffer-local center mode
+vim.b.zz_mode = "zt"  -- Buffer-local top mode
+vim.b.zz_mode = "zb"  -- Buffer-local bottom mode
+vim.b.zz_mode = ""    -- Clear buffer-local mode
+vim.b.zz_mode = nil   -- Remove buffer-local setting (use global)
 ```
 
 ### Types

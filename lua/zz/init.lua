@@ -3,7 +3,6 @@
 ---@field mappings table<string, string> Key mappings for different z-modes. Buffer-local mappings: bzz, bzt, bzb, bzc
 ---@field integrations { whichkey?: { group?: { icon?: string, prefix?: string, name?: string } }, snacks?: boolean } Optional integrations
 ---@field ignore_filetypes table<string, boolean> Filetypes to ignore for auto-centering
-
 ---@class ZMode
 ---@field setup fun(opts?: ZModeConfig) Configure the plugin
 ---@field disable fun() Disable current z-mode
@@ -37,6 +36,9 @@ M.config = {
         icon = "󰬡",
         prefix = "<leader>z",
         name = " ZZ modes",
+      },
+      buffer_clear = {
+        icon = "",
       },
     },
     snacks = true,
@@ -86,7 +88,7 @@ local function setup_cursor_moved()
           if vim.b.zz_mode ~= "" then
             vim.cmd("normal! " .. vim.b.zz_mode)
           end
-        -- No buffer setting, fall back to global
+          -- No buffer setting, fall back to global
         elseif vim.g.zz_mode and vim.g.zz_mode ~= "" then
           vim.cmd("normal! " .. vim.g.zz_mode)
         end
@@ -164,33 +166,34 @@ local function setup_buffer_mode_toggle(mode)
     end
 
     local desc = "Toggle buffer-local " .. mode .. " mode"
-    vim.keymap.set("n", mapping, toggle_func, { desc = desc })
+    vim.keymap.set("n", mapping, toggle_func, {
+      desc = desc,
+    })
   end
 end
 
 local function setup_buffer_clear()
   local mapping = M.config.mappings.bzc or "<leader>zC"
 
-  -- Set up Snacks integration if available and enabled
-  local snacks = M.config.integrations.snacks
-  if snacks ~= nil and snacks then
-    Snacks.toggle.new({
-      id = "buffer_mode_clear",
-      name = "Clear buffer z-mode",
-      get = function()
-        return vim.b.zz_mode ~= nil
-      end,
-      set = function(state)
-        if not state then
-          clear_buffer_mode()
-        end
-      end,
-      notify = M.config.notify,
-    }):map(mapping)
+  if whichkey_available() then
+    local wk = M.config.integrations.whichkey
+    if wk == nil or wk.buffer_clear == nil then
+      M.config.integrations.whichkey.buffer_clear = {}
+    end
+
+    local icon = wk.buffer_clear.icon or ""
+    require("which-key").add({
+      {
+        mapping,
+        clear_buffer_mode,
+        name = "Clear buffer-local z-mode",
+        icon = icon,
+        desc = "Clear buffer-local z-mode (use global)",
+      },
+    })
   else
-    -- fallback to "manual" clear function
     vim.keymap.set("n", mapping, clear_buffer_mode, {
-      desc = "Clear buffer-local z-mode (use global)"
+      desc = "Clear buffer-local z-mode (use global)",
     })
   end
 end
@@ -228,7 +231,9 @@ local function setup_mode_toggle(mode)
     end
 
     local desc = "Toggle " .. mode .. " mode"
-    vim.keymap.set("n", mapping, toggle_func, { desc = desc })
+    vim.keymap.set("n", mapping, toggle_func, {
+      desc = desc,
+    })
   end
 end
 

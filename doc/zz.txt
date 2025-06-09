@@ -11,8 +11,9 @@ CONTENTS                                                       *zz-contents*
     2. Requirements ........................... |zz-requirements|
     3. Configuration .......................... |zz-configuration|
     4. Usage ................................. |zz-usage|
-    5. API ................................... |zz-api|
-    6. Health Checks ......................... |zz-health|
+    5. Buffer-Local Settings ................. |zz-buffer-local|
+    6. API ................................... |zz-api|
+    7. Health Checks ......................... |zz-health|
 
 ==============================================================================
 1. INTRODUCTION                                           *zz-introduction*
@@ -39,14 +40,33 @@ it using the setup function: >lua
     require('zz').setup({
       -- Key mappings for different modes
       mappings = {
+        -- Global mode mappings
         zz = "<leader>zz", -- Center current line
         zt = "<leader>zt", -- Top align current line
         zb = "<leader>zb", -- Bottom align current line
+
+        -- Buffer-local mappings
+        bzz = "<leader>zZ", -- Toggle buffer-local center mode
+        bzt = "<leader>zT", -- Toggle buffer-local top mode
+        bzb = "<leader>zB", -- Toggle buffer-local bottom mode
+        bzc = "<leader>zC", -- Clear buffer-local mode
       },
       -- Optional integrations (all enabled by default)
       integrations = {
         whichkey = true, -- Enable which-key integration
         snacks = true,   -- Enable Snacks.toggle integration
+      },
+      -- Filetypes to ignore for auto-centering
+      ignore_filetypes = {
+        ["help"] = true,
+        ["qf"] = true,
+        ["TelescopePrompt"] = true,
+        ["NvimTree"] = true,
+        ["Trouble"] = true,
+        ["lazy"] = true,
+        ["mason"] = true,
+        ["oil"] = true,
+        ["copilot-chat"] = true,
       },
     })
 <
@@ -54,22 +74,60 @@ it using the setup function: >lua
 4. USAGE                                                       *zz-usage*
 
 Default key mappings:~
+
+Global mode mappings:~
     <leader>zz      Toggle center mode (zz)
     <leader>zt      Toggle top mode (zt)
     <leader>zb      Toggle bottom mode (zb)
 
-When a mode is active, moving vertically in the buffer will automatically
-apply the corresponding centering command.
+Buffer-local mappings:~
+    <leader>zZ      Toggle buffer-local center mode
+    <leader>zT      Toggle buffer-local top mode
+    <leader>zB      Toggle buffer-local bottom mode
+    <leader>zC      Clear buffer-local mode (use global)
 
-You can also control the mode by setting |vim.g.zz_mode| directly: >lua
+When a mode is active, moving vertically in the buffer will automatically
+apply the corresponding centering command. The mode can be set globally or
+per-buffer (see |zz-buffer-local|).
+
+You can control the mode by setting |vim.g.zz_mode| or |vim.b.zz_mode|: >lua
+    -- Global mode control
     vim.g.zz_mode = "zz"  -- Center mode
     vim.g.zz_mode = "zt"  -- Top mode
     vim.g.zz_mode = "zb"  -- Bottom mode
     vim.g.zz_mode = ""    -- Disable mode
+
+    -- Buffer-local mode control
+    vim.b.zz_mode = "zz"  -- Buffer-local center mode
+    vim.b.zz_mode = "zt"  -- Buffer-local top mode
+    vim.b.zz_mode = "zb"  -- Buffer-local bottom mode
+    vim.b.zz_mode = ""    -- Clear buffer-local mode
+    vim.b.zz_mode = nil   -- Remove buffer-local setting (use global)
 <
 
+Certain filetypes are ignored by default (see Configuration section).
+
 ==============================================================================
-5. API                                                         *zz-api*
+5. BUFFER-LOCAL SETTINGS                                  *zz-buffer-local*
+
+Buffer-local settings allow you to override the global z-mode for specific
+buffers. This is useful when you want different centering behavior in
+different files.
+
+Buffer-local modes take precedence over the global mode. When a buffer-local
+mode is set, vertical movement in that buffer will use the buffer-local mode
+instead of the global mode.
+
+You can use the buffer-local mappings (see Usage section) to:
+    - Toggle buffer-local modes (zz, zt, zb)
+    - Clear the buffer-local mode to use the global mode instead
+
+When a buffer-local mode is cleared (either by setting it to "" or nil):
+    - Setting to "" keeps the buffer-local setting but disables centering
+    - Setting to nil removes the buffer-local setting and uses global mode
+
+==============================================================================
+6. API                                                         *zz-api*
 
 Functions:~
 
@@ -90,13 +148,14 @@ is_enabled({mode})
     Check if specific mode is enabled
 
 Configuration Options:~
-    mappings          Key mappings table
+    mappings          Key mappings table for both global and buffer-local modes
     integrations      Table of integrations to enable/disable
         whichkey      Enable which-key integration
         snacks       Enable Snacks.toggle integration
+    ignore_filetypes  Table of filetypes to ignore for auto-centering
 
 ==============================================================================
-6. HEALTH CHECKS                                             *zz-health*
+7. HEALTH CHECKS                                             *zz-health*
 
 Run `:checkhealth zz` to verify your setup. The health check will:
 
